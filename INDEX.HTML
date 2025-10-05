@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terra Stories - Visualizing Earth's Transformation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .hero {
+            height: 100vh;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a237e 50%, #0d47a1 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            z-index: 1;
+            text-shadow: 0 0 20px rgba(100, 181, 246, 0.5);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            margin-bottom: 2rem;
+            z-index: 1;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease-out 0.3s backwards;
+        }
+
+        .cta-button {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #42a5f5, #1976d2);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 1;
+            animation: fadeInUp 1s ease-out 0.6s backwards;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(66, 165, 245, 0.4);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            padding: 80px 5%;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            background: linear-gradient(135deg, #64b5f6, #42a5f5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .story-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .story-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(66, 165, 245, 0.2);
+            border-color: rgba(66, 165, 245, 0.5);
+        }
+
+        .story-card.active {
+            border-color: rgba(66, 165, 245, 0.8);
+            background: rgba(66, 165, 245, 0.1);
+        }
+
+        .story-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .story-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #64b5f6;
+        }
+
+        .story-card p {
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .data-source {
+            display: inline-block;
+            background: rgba(66, 165, 245, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .viz-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 1400px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+
+        .viz-container.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .timeline-container {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline-slider {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .timeline-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #42a5f5;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(66, 165, 245, 0.5);
+        }
+
+        .timeline-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #42a5f5;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .timeline-year {
+            text-align: center;
+            font-size: 2rem;
+            color: #64b5f6;
+            margin: 1rem 0;
+            font-weight: 700;
+        }
+
+        .viz-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .viz-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .viz-panel h4 {
+            color: #64b5f6;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .world-map {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            background: #0a0e27;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(66, 165, 245, 0.3);
+        }
+
+        .map-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .continent {
+            fill: #1a237e;
+            stroke: #42a5f5;
+            stroke-width: 1;
+            transition: fill 0.3s;
+        }
+
+        .continent:hover {
+            fill: #263876;
+        }
+
+        .hotspot {
+            fill: #ff5722;
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; r: 5; }
+            50% { opacity: 0.9; r: 8; }
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 3rem auto;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(66, 165, 245, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(66, 165, 245, 0.3);
+            transition: transform 0.3s;
+        }
+
+        .stat-box:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #64b5f6;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .animated-smoke {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            background: linear-gradient(to bottom, #1a237e, #0a0e27);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .smoke-particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255, 87, 34, 0.6), transparent);
+            border-radius: 50%;
+            animation: float 10s infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-200px) translateX(50px);
+                opacity: 0;
+            }
+        }
+
+        .glacier-viz {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            background: linear-gradient(to bottom, #e3f2fd, #bbdefb);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .glacier {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 70%;
+            background: linear-gradient(135deg, #e1f5fe, #81d4fa);
+            clip-path: polygon(0 100%, 10% 60%, 25% 40%, 40% 30%, 60% 30%, 75% 40%, 90% 60%, 100% 100%);
+            transition: height 1s, width 1s;
+        }
+
+        .deforestation-viz {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            background: #2e7d32;
+            border-radius: 10px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+        }
+
+        .tree-cell {
+            background: #1b5e20;
+            transition: background 0.5s;
+            border: 1px solid #2e7d32;
+        }
+
+        .tree-cell.cleared {
+            background: #8d6e63;
+        }
+
+        .ocean-temp-viz {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            background: linear-gradient(to bottom, #0d47a1, #1565c0, #1976d2);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: background 1s;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            width: 100%;
+            height: 100%;
+            gap: 2px;
+        }
+
+        .heatmap-cell {
+            background: #1565c0;
+            transition: background 0.5s;
+            border-radius: 2px;
+        }
+
+        footer {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 3rem 5%;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nasa-credit {
+            margin-top: 2rem;
+            opacity: 0.7;
+        }
+
+        .narrative-box {
+            background: rgba(66, 165, 245, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid #42a5f5;
+            margin: 2rem 0;
+            line-height: 1.8;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .hero p {
+                font-size: 1.2rem;
+            }
+            .viz-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="stars" id="stars"></div>
+        <h1>Terra Stories</h1>
+        <p>Visualizing Earth's Transformation Through NASA Satellite Data</p>
+        <button class="cta-button" onclick="document.getElementById('stories').scrollIntoView({behavior: 'smooth'})">
+            Explore the Data
+        </button>
+    </section>
+
+    <!-- Stories Grid -->
+    <section class="section" id="stories">
+        <h2 class="section-title">Our Planet's Changing Story</h2>
+        <div class="stories-grid">
+            <div class="story-card" onclick="showVisualization('urban')" id="card-urban">
+                <div class="story-icon">🏙️</div>
+                <h3>Urban Expansion</h3>
+                <p>Watch how cities have grown dramatically over the past two decades, transforming natural landscapes into sprawling metropolitan areas.</p>
+                <span class="data-source">ASTER Data</span>
+            </div>
+            <div class="story-card" onclick="showVisualization('pollution')" id="card-pollution">
+                <div class="story-icon">💨</div>
+                <h3>Air Pollution Spread</h3>
+                <p>Track the movement of carbon monoxide and pollutants across continents, revealing the invisible impact of human activity.</p>
+                <span class="data-source">MOPITT Data</span>
+            </div>
+            <div class="story-card" onclick="showVisualization('wildfire')" id="card-wildfire">
+                <div class="story-icon">🔥</div>
+                <h3>Wildfire Smoke Plumes</h3>
+                <p>Visualize the devastating spread of wildfire smoke, affecting air quality thousands of miles from the fire source.</p>
+                <span class="data-source">MODIS Data</span>
+            </div>
+            <div class="story-card" onclick="showVisualization('glacier')" id="card-glacier">
+                <div class="story-icon">🧊</div>
+                <h3>Glacier Retreat</h3>
+                <p>Witness the alarming rate of ice loss as glaciers and ice sheets shrink year after year, a direct indicator of climate change.</p>
+                <span class="data-source">Terra ASTER/MODIS</span>
+            </div>
+            <div class="story-card" onclick="showVisualization('deforestation')" id="card-deforestation">
+                <div class="story-icon">🌳</div>
+                <h3>Deforestation</h3>
+                <p>See the rapid loss of forest cover in critical ecosystems, impacting biodiversity and carbon storage.</p>
+                <span class="data-source">ASTER Data</span>
+            </div>
+            <div class="story-card" onclick="showVisualization('ocean')" id="card-ocean">
+                <div class="story-icon">🌊</div>
+                <h3>Ocean Temperature Rise</h3>
+                <p>Monitor increasing sea surface temperatures that threaten marine ecosystems and contribute to extreme weather.</p>
+                <span class="data-source">MODIS Data</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Visualizations -->
+    <section class="section" style="background: rgba(0, 0, 0, 0.2);" id="viz-section">
+        <h2 class="section-title">Interactive Visualizations</h2>
+        
+        <!-- Urban Expansion -->
+        <div class="viz-container" id="viz-urban">
+            <h3 style="margin-bottom: 2rem; color: #64b5f6;">🏙️ Urban Growth Timeline</h3>
+            <div class="timeline-container">
+                <input type="range" class="timeline-slider" min="2000" max="2024" value="2000" id="urbanSlider" oninput="updateUrbanData(this.value)">
+                <div class="timeline-year" id="urbanYear">2000</div>
+            </div>
+            
+            <div class="viz-grid">
+                <div class="viz-panel">
+                    <h4>📊 Growth Trend Analysis</h4>
+                    <div class="chart-container">
+                        <canvas id="urbanChart"></canvas>
+                    </div>
+                </div>
+                <div class="viz-panel">
+                    <h4>🗺️ Global Urban Hotspots</h4>
+                    <div class="world-map">
+                        <svg class="map-svg" viewBox="0 0 800 400" id="urbanMap">
+                            <!-- Simplified world map -->
+                            <path class="continent" d="M 100 150 Q 150 120 200 150 T 300 140 L 320 180 Q 300 200 250 190 L 200 200 Q 150 190 100 180 Z" />
+                            <path class="continent" d="M 350 120 L 450 110 Q 480 130 470 160 L 420 180 Q 390 170 370 150 Z" />
+                            <path class="continent" d="M 500 140 Q 550 120 600 145 L 620 180 Q 580 200 540 185 L 500 170 Z" />
+                            <path class="continent" d="M 120 250 Q 180 230 240 250 L 260 300 Q 200 320 150 290 Z" />
+                            <path class="continent" d="M 50 100 Q 80 80 110 100 L 120 130 Q 90 140 60 120 Z" />
+                            <circle class="hotspot" cx="200" cy="160" r="5" id="hotspot1"/>
+                            <circle class="hotspot" cx="420" cy="140" r="5" id="hotspot2"/>
+                            <circle class="hotspot" cx="560" cy="150" r="5" id="hotspot3"/>
+                            <circle class="hotspot" cx="180" cy="270" r="5" id="hotspot4"/>
+                        </svg>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff5722;"></div>
+                            <span>Major Growth Areas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="narrative-box" id="urbanNarrative">
+                In 2000, urban areas covered approximately 2.1 million square kilometers globally. Cities are expanding at an unprecedented rate, driven by rapid population growth and economic development.
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="urbanArea">2.1M</div>
+                    <div class="stat-label">km² Urban Area</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="urbanPop">2.9B</div>
+                    <div class="stat-label">Urban Population</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="urbanGrowth">0%</div>
+                    <div class="stat-label">Growth vs 2000</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Air Pollution -->
+        <div class="viz-container" id="viz-pollution">
+            <h3 style="margin-bottom: 2rem; color: #64b5f6;">💨 Carbon Monoxide Levels</h3>
+            <div class="timeline-container">
+                <input type="range" class="timeline-slider" min="2000" max="2024" value="2000" id="pollutionSlider" oninput="updatePollutionData(this.value)">
+                <div class="timeline-year" id="pollutionYear">2000</div>
+            </div>
+            
+            <div class="viz-grid">
+                <div class="viz-panel">
+                    <h4>📈 CO Concentration Over Time</h4>
+                    <div class="chart-container">
+                        <canvas id="pollutionChart"></canvas>
+                    </div>
+                </div>
+                <div class="viz-panel">
+                    <h4>🌍 Global CO Distribution</h4>
+                    <div class="world-map">
+                        <div class="heatmap-grid" id="pollutionHeatmap"></div>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #4caf50;"></div>
+                            <span>Low</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ffeb3b;"></div>
+                            <span>Medium</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff5722;"></div>
+                            <span>High</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="narrative-box" id="pollutionNarrative">
+                MOPITT data reveals carbon monoxide concentrations across the globe. These pollutants travel vast distances, affecting air quality far from their sources.
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="coLevel">135</div>
+                    <div class="stat-label">ppb CO Level</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="pollutedCities">85</div>
+                    <div class="stat-label">Cities Above WHO Limit</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="airQualityIndex">142</div>
+                    <div class="stat-label">Global AQI</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wildfire Smoke -->
+        <div class="viz-container" id="viz-wildfire">
+            <h3 style="margin-bottom: 2rem; color: #64b5f6;">🔥 Wildfire Activity & Smoke</h3>
+            <div class="timeline-container">
+                <input type="range" class="timeline-slider" min="2000" max="2024" value="2000" id="wildfireSlider" oninput="updateWildfireData(this.value)">
+                <div class="timeline-year" id="wildfireYear">2000</div>
+            </div>
+            
+            <div class="viz-grid">
+                <div class="viz-panel">
+                    <h4>📊 Annual Wildfire Statistics</h4>
+                    <div class="chart-container">
+                        <canvas id="wildfireChart"></canvas>
+                    </div>
+                </div>
+                <div class="viz-panel">
+                    <h4>🌪️ Live Smoke Plume Simulation</h4>
+                    <div class="animated-smoke" id="smokeViz"></div>
+                </div>
+            </div>
+            
+            <div class="narrative-box" id="wildfireNarrative">
+                Wildfire frequency and intensity have increased dramatically. Smoke plumes can travel thousands of miles, affecting air quality across continents.
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="wildfireCount">54K</div>
+                    <div class="stat-label">Wildfires/Year</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="wildfireArea">3.2M</div>
+                    <div class="stat-label">Hectares Burned</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="smokePM">285</div>
+                    <div class="stat-label">PM2.5 μg/m³</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Glacier Retreat -->
+        <div class="viz-container" id="viz-glacier">
+            <h3 style="margin-bottom: 2rem; color: #64b5f6;">🧊 Glacier Ice Mass Loss</h3>
+            <div class="timeline-container">
+                <input type="range" class="timeline-slider" min="2000" max="2024" value="2000" id="glacierSlider" oninput="updateGlacierData(this.value)">
+                <div class="timeline-year" id="glacierYear">2000</div>
+            </div>
+            
+            <div class="viz-grid">
+                <div class="viz-panel">
+                    <h4>📉 Ice Mass Decline</h4>
+                    <div class="chart-container">
+                        <canvas id="glacierChart"></canvas>
+                    </div>
+                </div>
+                <div class="viz-panel">
+                    <h4>❄️ Visual Glacier Retreat</h4>
+                    <div class="glacier-viz">
+                        <div class="glacier" id="glacier"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="narrative-box" id="glacierNarrative">
+                Glacier retreat is one of the clearest indicators of climate change. Since 2000, global glacier mass has declined significantly, contributing to sea level rise.
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="glacierLoss">-0</div>
+                    <div class="stat-label">Billion Tons Lost</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="seaLevel">+0.0</div>
+                    <div class="stat-label">mm Sea Level Rise</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="glacierPercent">100%</div>
+                    <div class="stat-label">Remaining Ice Mass</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deforestation -->
+        <div class="viz-container" id="viz-deforestation">
+            <h3 style="margin-bottom: 2rem; color: #64b5f6;">🌳 Forest Cover Loss</h3>
+            <div class="timeline-container">
+                <input type="range" class="timeline-slider" min="2000" max="2024" value="2000" id="deforestSlider" oninput="updateDeforestationData(this.value)">
+                <div class="timeline-year" id="deforestYear">2000</div>
+            </div>
+            
+            <div class="viz-grid">
+                <div class="viz-panel">
+                    <h4>📊 Deforestation Rate</h4>
+                    <div class="chart-container">
+                        <canvas id="deforestChart"></canvas>
+                    </div>
+                </div>
+                <div class="viz-panel">
+                    <h4>🌲 Forest Cover Visualization</h4>
+                    <div class="deforestation-viz" id="deforestViz"></div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #1b5e20;"></div>
+                            <span>Forest</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #8d6e63;"></div>
+                            <span>Cleared</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="narrative-box" id="deforestNarrative">
+                Tropical forests are disappearing at an alarming rate. Each year, millions of hectares are cleared for agriculture, logging, and development.
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="forestLost">0M</div>
+                    <div class="stat-label">Hectares Lost</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="forestRate">10M</div>
+                    <div class="stat-label">Hectares/Year</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="carbonLoss">1.5</div>
+                    <div class="stat-label">Gt CO₂ Released</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ocean Temperature -->
+        <div class="viz-container" id="viz-ocean">
+            <h3 style="margin-bottom: 2rem; color: #64b5f6;">🌊 Sea Surface Temperature</h3>
+            <div class="timeline-container">
+                <input type="range" class="timeline-slider" min="2000" max="2024" value="2000" id="oceanSlider" oninput="updateOceanData(this.value)">
+                <div class="timeline-year" id="oceanYear">2000</div>
+            </div>
+            
+            <div class="viz-grid">
+                <div class="viz-panel">
+                    <h4>🌡️ Temperature Anomaly Trend</h4>
+                    <div class="chart-container">
+                        <canvas id="oceanChart"></canvas>
+                    </div>
+                </div>
+                <div class="viz-panel">
+                    <h4>🗺️ Ocean Heat Map</h4>
+                    <div class="ocean-temp-viz" id="oceanViz">
+                        <div class="heatmap-grid" id="oceanHeatmap"></div>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #0d47a1;"></div>
+                            <span>Cool</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #1976d2;"></div>
+                            <span>Normal</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff9800;"></div>
+                            <span>Warm</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #f44336;"></div>
+                            <span>Hot</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="narrative-box" id="oceanNarrative">
+                Ocean temperatures have risen steadily since 2000. Warmer waters lead to coral bleaching, disrupted marine ecosystems, and more intense hurricanes.
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="oceanTemp">16.8°</div>
+                    <div class="stat-label">Average SST (°C)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="tempAnomaly">+0.0°</div>
+                    <div class="stat-label">Above Baseline</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="coralBleach">12%</div>
+                    <div class="stat-label">Coral Bleaching</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About NASA Terra -->
+    <section class="section">
+        <h2 class="section-title">About NASA's Terra Satellite</h2>
+        <div style="max-width: 900px; margin: 0 auto; text-align: center; line-height: 1.8;">
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;">
+                Launched in 1999, Terra is NASA's flagship Earth observation satellite, equipped with five sophisticated instruments 
+                monitoring everything from atmospheric pollution to land use changes.
+            </p>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number">25+</div>
+                    <div class="stat-label">Years in Orbit</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Scientific Instruments</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">∞</div>
+                    <div class="stat-label">Earth Observations</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <h3>Data Sources</h3>
+        <p style="margin: 1rem 0;">ASTER • MOPITT • MODIS • MISR • CERES</p>
+        <div class="nasa-credit">
+            <p>Created for NASA Space Apps Challenge 2024</p>
+            <p>Data courtesy of NASA Terra Mission • earthdata.nasa.gov</p>
+        </div>
+    </footer>
+
+    <script>
+        // Data sets for each visualization
+        const urbanData = {
+            2000: { area: 2.1, pop: 2.9, growth: 0, rate: 45, percent: 47 },
+            2005: { area: 2.4, pop: 3.2, growth: 14, rate: 48, percent: 49 },
+            2010: { area: 2.7, pop: 3.5, growth: 29, rate: 52, percent: 51 },
+            2015: { area: 3.1, pop: 4.0, growth: 48, rate: 58, percent: 54 },
+            2020: { area: 3.5, pop: 4.4, growth: 67, rate: 62, percent: 56 },
+            2024: { area: 3.8, pop: 4.7, growth: 81, rate: 65, percent: 57 }
+        };
+
+        const pollutionData = {
+            2000: { co: 135, cities: 85, aqi: 142 },
+            2005: { co: 145, cities: 92, aqi: 156 },
+            2010: { co: 158, cities: 105, aqi: 168 },
+            2015: { co: 162, cities: 118, aqi: 175 },
+            2020: { co: 148, cities: 98, aqi: 162 },
+            2024: { co: 152, cities: 102, aqi: 165 }
+        };
+
+        const wildfireData = {
+            2000: { count: 54, area: 3.2, pm: 285 },
+            2005: { count: 62, area: 3.8, pm: 312 },
+            2010: { count: 71, area: 4.5, pm: 345 },
+            2015: { count: 88, area: 5.8, pm: 398 },
+            2020: { count: 105, area: 7.2, pm: 452 },
+            2024: { count: 118, area: 8.1, pm: 487 }
+        };
+
+        const glacierData = {
+            2000: { loss: 0, sealevel: 0.0, percent: 100, height: 70 },
+            2005: { loss: 750, sealevel: 2.1, percent: 95, height: 66 },
+            2010: { loss: 1500, sealevel: 4.2, percent: 90, height: 63 },
+            2015: { loss: 2400, sealevel: 6.7, percent: 84, height: 59 },
+            2020: { loss: 3300, sealevel: 9.2, percent: 78, height: 55 },
+            2024: { loss: 4200, sealevel: 11.7, percent: 72, height: 50 }
+        };
+
+        const deforestData = {
+            2000: { lost: 0, rate: 10, carbon: 1.5 },
+            2005: { lost: 50, rate: 11, carbon: 1.7 },
+            2010: { lost: 105, rate: 13, carbon: 2.0 },
+            2015: { lost: 170, rate: 15, carbon: 2.3 },
+            2020: { lost: 245, rate: 17, carbon: 2.6 },
+            2024: { lost: 315, rate: 18, carbon: 2.8 }
+        };
+
+        const oceanData = {
+            2000: { temp: 16.8, anomaly: 0.0, bleach: 12 },
+            2005: { temp: 16.9, anomaly: 0.1, bleach: 18 },
+            2010: { temp: 17.0, anomaly: 0.2, bleach: 25 },
+            2015: { temp: 17.2, anomaly: 0.4, bleach: 34 },
+            2020: { temp: 17.4, anomaly: 0.6, bleach: 42 },
+            2024: { temp: 17.6, anomaly: 0.8, bleach: 48 }
+        };
+
+        // Chart instances
+        let charts = {};
+
+        // Create starfield
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 200; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
+        }
+
+        // Initialize heatmaps
+        function createHeatmap(containerId, rows, cols) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+            
+            for (let i = 0; i < rows * cols; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'heatmap-cell';
+                cell.dataset.index = i;
+                container.appendChild(cell);
+            }
+        }
+
+        // Initialize deforestation grid
+        const deforestViz = document.getElementById('deforestViz');
+        for (let i = 0; i < 200; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'tree-cell';
+            cell.dataset.index = i;
+            deforestViz.appendChild(cell);
+        }
+
+        // Create charts
+        function createChart(canvasId, type, data, options) {
+            const ctx = document.getElementById(canvasId);
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+            charts[canvasId] = new Chart(ctx, {
+                type: type,
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    },
+                    ...options
+                }
+            });
+        }
+
+        // Show visualization function
+        function showVisualization(type) {
+            document.querySelectorAll('.story-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.getElementById('card-' + type).classList.add('active');
+            
+            document.querySelectorAll('.viz-container').forEach(viz => {
+                viz.classList.remove('active');
+            });
+            document.getElementById('viz-' + type).classList.add('active');
+            
+            document.getElementById('viz-section').scrollIntoView({ behavior: 'smooth' });
+            
+            const slider = document.getElementById(type + 'Slider');
+            if (slider) {
+                slider.value = 2000;
+                if (type === 'urban') { initUrbanChart(); updateUrbanData(2000); }
+                if (type === 'pollution') { initPollutionChart(); updatePollutionData(2000); createHeatmap('pollutionHeatmap', 8, 15); }
+                if (type === 'wildfire') { initWildfireChart(); updateWildfireData(2000); }
+                if (type === 'glacier') { initGlacierChart(); updateGlacierData(2000); }
+                if (type === 'deforestation') { initDeforestChart(); updateDeforestationData(2000); }
+                if (type === 'ocean') { initOceanChart(); updateOceanData(2000); createHeatmap('oceanHeatmap', 8, 15); }
+            }
+        }
+
+        // Initialize charts
+        function initUrbanChart() {
+            createChart('urbanChart', 'line', {
+                labels: ['2000', '2005', '2010', '2015', '2020', '2024'],
+                datasets: [{
+                    label: 'Urban Area (Million km²)',
+                    data: [2.1, 2.4, 2.7, 3.1, 3.5, 3.8],
+                    borderColor: '#42a5f5',
+                    backgroundColor: 'rgba(66, 165, 245, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            }, {});
+        }
+
+        function initPollutionChart() {
+            createChart('pollutionChart', 'line', {
+                labels: ['2000', '2005', '2010', '2015', '2020', '2024'],
+                datasets: [{
+                    label: 'CO Level (ppb)',
+                    data: [135, 145, 158, 162, 148, 152],
+                    borderColor: '#ff9800',
+                    backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            }, {});
+        }
+
+        function initWildfireChart() {
+            createChart('wildfireChart', 'bar', {
+                labels: ['2000', '2005', '2010', '2015', '2020', '2024'],
+                datasets: [{
+                    label: 'Wildfires (Thousands)',
+                    data: [54, 62, 71, 88, 105, 118],
+                    backgroundColor: 'rgba(255, 87, 34, 0.7)',
+                    borderColor: '#ff5722',
+                    borderWidth: 2
+                }]
+            }, {});
+        }
+
+        function initGlacierChart() {
+            createChart('glacierChart', 'line', {
+                labels: ['2000', '2005', '2010', '2015', '2020', '2024'],
+                datasets: [{
+                    label: 'Ice Mass Remaining (%)',
+                    data: [100, 95, 90, 84, 78, 72],
+                    borderColor: '#00bcd4',
+                    backgroundColor: 'rgba(0, 188, 212, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            }, {});
+        }
+
+        function initDeforestChart() {
+            createChart('deforestChart', 'bar', {
+                labels: ['2000', '2005', '2010', '2015', '2020', '2024'],
+                datasets: [{
+                    label: 'Forest Lost (Million Hectares)',
+                    data: [0, 50, 105, 170, 245, 315],
+                    backgroundColor: 'rgba(139, 69, 19, 0.7)',
+                    borderColor: '#8b4513',
+                    borderWidth: 2
+                }]
+            }, {});
+        }
+
+        function initOceanChart() {
+            createChart('oceanChart', 'line', {
+                labels: ['2000', '2005', '2010', '2015', '2020', '2024'],
+                datasets: [{
+                    label: 'Temperature Anomaly (°C)',
+                    data: [0.0, 0.1, 0.2, 0.4, 0.6, 0.8],
+                    borderColor: '#f44336',
+                    backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            }, {});
+        }
+
+        // Update functions
+        function updateUrbanData(year) {
+            const yearKey = Math.floor(year / 5) * 5;
+            const nextYear = Math.min(yearKey + 5, 2024);
+            const progress = (year - yearKey) / 5;
+            
+            const current = urbanData[yearKey];
+            const next = urbanData[nextYear];
+            
+            if (current && next) {
+                const area = (current.area + (next.area - current.area) * progress).toFixed(1);
+                const pop = (current.pop + (next.pop - current.pop) * progress).toFixed(1);
+                const growth = Math.round(current.growth + (next.growth - current.growth) * progress);
+                
+                document.getElementById('urbanYear').textContent = year;
+                document.getElementById('urbanArea').textContent = area + 'M';
+                document.getElementById('urbanPop').textContent = pop + 'B';
+                document.getElementById('urbanGrowth').textContent = growth + '%';
+                
+                // Update hotspots
+                const hotspots = document.querySelectorAll('.hotspot');
+                const intensity = (year - 2000) / 24;
+                hotspots.forEach((spot, i) => {
+                    spot.setAttribute('r', 5 + intensity * 8);
+                    spot.style.opacity = 0.5 + intensity * 0.4;
+                });
+                
+                const narratives = {
+                    2000: 'In 2000, urban areas covered 2.1 million km². Cities were expanding but at a manageable pace.',
+                    2005: 'By 2005, urbanization accelerated in Asia and Africa, with megacities emerging rapidly.',
+                    2010: 'The 2010s saw unprecedented urban growth, with cities expanding into previously rural areas.',
+                    2015: 'Urban sprawl became a global phenomenon, consuming agricultural land and natural habitats.',
+                    2020: 'COVID-19 temporarily slowed growth, but cities continued expanding into surrounding regions.',
+                    2024: 'Today, nearly 60% of humanity lives in cities, with urban areas covering 3.8 million km².'
+                };
+                document.getElementById('urbanNarrative').textContent = narratives[yearKey] || narratives[2024];
+            }
+        }
+
+        function updatePollutionData(year) {
+            const yearKey = Math.floor(year / 5) * 5;
+            const nextYear = Math.min(yearKey + 5, 2024);
+            const progress = (year - yearKey) / 5;
+            
+            const current = pollutionData[yearKey];
+            const next = pollutionData[nextYear];
+            
+            if (current && next) {
+                const co = Math.round(current.co + (next.co - current.co) * progress);
+                const cities = Math.round(current.cities + (next.cities - current.cities) * progress);
+                const aqi = Math.round(current.aqi + (next.aqi - current.aqi) * progress);
+                
+                document.getElementById('pollutionYear').textContent = year;
+                document.getElementById('coLevel').textContent = co;
+                document.getElementById('pollutedCities').textContent = cities;
+                document.getElementById('airQualityIndex').textContent = aqi;
+                
+                // Update heatmap
+                const cells = document.querySelectorAll('#pollutionHeatmap .heatmap-cell');
+                const intensity = (co - 135) / (175 - 135);
+                cells.forEach((cell, i) => {
+                    const random = Math.sin(i * 0.1 + year * 0.01) * 0.5 + 0.5;
+                    const value = intensity * random;
+                    if (value < 0.3) {
+                        cell.style.background = '#4caf50';
+                    } else if (value < 0.6) {
+                        cell.style.background = '#ffeb3b';
+                    } else {
+                        cell.style.background = '#ff5722';
+                    }
+                });
+                
+                const narratives = {
+                    2000: 'MOPITT data shows baseline CO levels from industrial activity and vehicle emissions.',
+                    2005: 'Rapid industrialization in developing nations increased atmospheric pollutants significantly.',
+                    2010: 'Peak pollution years as coal-fired plants and vehicle use reached historic highs.',
+                    2015: 'Air quality became a major health crisis in megacities worldwide.',
+                    2020: 'Lockdowns briefly improved air quality, revealing what cleaner air could look like.',
+                    2024: 'Despite improvements, many regions still exceed WHO air quality guidelines.'
+                };
+                document.getElementById('pollutionNarrative').textContent = narratives[yearKey] || narratives[2024];
+            }
+        }
+
+        function updateWildfireData(year) {
+            const yearKey = Math.floor(year / 5) * 5;
+            const nextYear = Math.min(yearKey + 5, 2024);
+            const progress = (year - yearKey) / 5;
+            
+            const current = wildfireData[yearKey];
+            const next = wildfireData[nextYear];
+            
+            if (current && next) {
+                const count = Math.round(current.count + (next.count - current.count) * progress);
+                const area = (current.area + (next.area - current.area) * progress).toFixed(1);
+                const pm = Math.round(current.pm + (next.pm - current.pm) * progress);
+                
+                document.getElementById('wildfireYear').textContent = year;
+                document.getElementById('wildfireCount').textContent = count + 'K';
+                document.getElementById('wildfireArea').textContent = area + 'M';
+                document.getElementById('smokePM').textContent = pm;
+                
+                const narratives = {
+                    2000: 'Wildfires were primarily natural events with limited human impact on frequency.',
+                    2005: 'Rising temperatures began extending fire seasons in temperate regions.',
+                    2010: 'Mega-fires emerged as a new phenomenon, burning for months across continents.',
+                    2015: 'Climate-driven droughts made forests increasingly vulnerable to catastrophic fires.',
+                    2020: 'Australia, California, and the Amazon experienced unprecedented fire seasons.',
+                    2024: 'Wildfires now burn year-round in multiple regions, with smoke affecting billions.'
+                };
+                document.getElementById('wildfireNarrative').textContent = narratives[yearKey] || narratives[2024];
+            }
+        }
+
+        function updateGlacierData(year) {
+            const yearKey = Math.floor(year / 5) * 5;
+            const nextYear = Math.min(yearKey + 5, 2024);
+            const progress = (year - yearKey) / 5;
+            
+            const current = glacierData[yearKey];
+            const next = glacierData[nextYear];
+            
+            if (current && next) {
+                const loss = Math.round(current.loss + (next.loss - current.loss) * progress);
+                const sealevel = (current.sealevel + (next.sealevel - current.sealevel) * progress).toFixed(1);
+                const percent = Math.round(current.percent + (next.percent - current.percent) * progress);
+                const height = current.height + (next.height - current.height) * progress;
+                
+                document.getElementById('glacierYear').textContent = year;
+                document.getElementById('glacierLoss').textContent = '-' + loss;
+                document.getElementById('seaLevel').textContent = '+' + sealevel;
+                document.getElementById('glacierPercent').textContent = percent + '%';
+                
+                const glacier = document.getElementById('glacier');
+                glacier.style.height = height + '%';
+                glacier.style.width = (60 + (100 - percent) * 0.3) + '%';
+                
+                const narratives = {
+                    2000: 'In 2000, glacier mass was stable with normal seasonal variations.',
+                    2005: 'Accelerating melt rates began appearing in mountain glaciers worldwide.',
+                    2010: 'Greenland and Antarctic ice sheets showed measurable mass loss for the first time.',
+                    2015: 'Glacier retreat became visible to the naked eye in tourist destinations.',
+                    2020: 'Record heat waves accelerated ice loss beyond worst-case predictions.',
+                    2024: 'Over 4 trillion tons of ice lost since 2000, raising seas by nearly 12mm.'
+                };
+                document.getElementById('glacierNarrative').textContent = narratives[yearKey] || narratives[2024];
+            }
+        }
+
+        function updateDeforestationData(year) {
+            const yearKey = Math.floor(year / 5) * 5;
+            const nextYear = Math.min(yearKey + 5, 2024);
+            const progress = (year - yearKey) / 5;
+            
+            const current = deforestData[yearKey];
+            const next = deforestData[nextYear];
+            
+            if (current && next) {
+                const lost = Math.round(current.lost + (next.lost - current.lost) * progress);
+                const rate = Math.round(current.rate + (next.rate - current.rate) * progress);
+                const carbon = (current.carbon + (next.carbon - current.carbon) * progress).toFixed(1);
+                
+                document.getElementById('deforestYear').textContent = year;
+                document.getElementById('forestLost').textContent = lost + 'M';
+                document.getElementById('forestRate').textContent = rate + 'M';
+                document.getElementById('carbonLoss').textContent = carbon;
+                
+                const cellsToClear = Math.floor((lost / 315) * 200);
+                const cells = document.querySelectorAll('.tree-cell');
+                cells.forEach((cell, index) => {
+                    if (index < cellsToClear) {
+                        cell.classList.add('cleared');
+                    } else {
+                        cell.classList.remove('cleared');
+                    }
+                });
+                
+                const narratives = {
+                    2000: 'Tropical forests covered vast areas, providing habitat for millions of species.',
+                    2005: 'Agricultural expansion drove deforestation in the Amazon and Southeast Asia.',
+                    2010: 'Illegal logging and palm oil plantations accelerated forest loss dramatically.',
+                    2015: 'Forest fires, both natural and human-caused, destroyed millions of hectares.',
+                    2020: 'COVID-19 saw increased illegal deforestation with reduced enforcement.',
+                    2024: '315 million hectares lost since 2000 - an area larger than India.'
+                };
+                document.getElementById('deforestNarrative').textContent = narratives[yearKey] || narratives[2024];
+            }
+        }
+
+        function updateOceanData(year) {
+            const yearKey = Math.floor(year / 5) * 5;
+            const nextYear = Math.min(yearKey + 5, 2024);
+            const progress = (year - yearKey) / 5;
+            
+            const current = oceanData[yearKey];
+            const next = oceanData[nextYear];
+            
+            if (current && next) {
+                const temp = (current.temp + (next.temp - current.temp) * progress).toFixed(1);
+                const anomaly = (current.anomaly + (next.anomaly - current.anomaly) * progress).toFixed(1);
+                const bleach = Math.round(current.bleach + (next.bleach - current.bleach) * progress);
+                
+                document.getElementById('oceanYear').textContent = year;
+                document.getElementById('oceanTemp').textContent = temp + '°';
+                document.getElementById('tempAnomaly').textContent = '+' + anomaly + '°';
+                document.getElementById('coralBleach').textContent = bleach + '%';
+                
+                // Update ocean heatmap
+                const cells = document.querySelectorAll('#oceanHeatmap .heatmap-cell');
+                const warmth = parseFloat(anomaly) / 0.8;
+                cells.forEach((cell, i) => {
+                    const random = Math.sin(i * 0.15 + year * 0.02) * 0.5 + 0.5;
+                    const value = warmth * random;
+                    if (value < 0.2) {
+                        cell.style.background = '#0d47a1';
+                    } else if (value < 0.5) {
+                        cell.style.background = '#1976d2';
+                    } else if (value < 0.7) {
+                        cell.style.background = '#ff9800';
+                    } else {
+                        cell.style.background = '#f44336';
+                    }
+                });
+                
+                const narratives = {
+                    2000: 'Ocean temperatures were near historical averages with normal seasonal variation.',
+                    2005: 'First signs of persistent warming emerged in tropical and subtropical waters.',
+                    2010: 'Marine heatwaves became more frequent, stressing coral reef ecosystems.',
+                    2015: 'El Niño combined with warming trends caused massive coral bleaching events.',
+                    2020: 'Ocean heat content reached record levels, fueling stronger hurricanes.',
+                    2024: 'Oceans have absorbed 90% of excess heat, now 0.8°C warmer than in 2000.'
+                };
+                document.getElementById('oceanNarrative').textContent = narratives[yearKey] || narratives[2024];
+            }
+        }
+
+        // Create smoke particles
+        const smokeViz = document.getElementById('smokeViz');
+        function createSmokeParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'smoke-particle';
+            const size = Math.random() * 60 + 40;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.bottom = '0';
+            particle.style.animationDuration = (Math.random() * 5 + 8) + 's';
+            particle.style.animationDelay = Math.random() * 2 + 's';
+            smokeViz.appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 13000);
+        }
+
+        setInterval(createSmokeParticle, 1500);
+        for (let i = 0; i < 8; i++) {
+            setTimeout(createSmokeParticle, i * 500);
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            updateUrbanData(2000);
+            updatePollutionData(2000);
+            updateWildfireData(2000);
+            updateGlacierData(2000);
+            updateDeforestationData(2000);
+            updateOceanData(2000);
+        });
+    </script>
+</body>
+</html>
